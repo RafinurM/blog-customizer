@@ -37,12 +37,7 @@ export const ArticleParamsForm = ({
 		setFormState(defaultArticleState);
 		setArticleConfig(defaultArticleState);
 	};
-	const onChange = () => {
-		if (isOpen) {
-			setIsOpen((prev) => !prev);
-		}
-	};
-	useOutsideClickClose({ isOpen, rootRef, onChange });
+	useOutsideClickClose({ isOpen, rootRef, onChange: setIsOpen });
 	return (
 		<>
 			<ArrowButton isOpen={isOpen} onClick={() => setIsOpen((prev) => !prev)} />
