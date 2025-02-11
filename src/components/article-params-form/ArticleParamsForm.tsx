@@ -1,6 +1,5 @@
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
-
 import styles from './ArticleParamsForm.module.scss';
 import { Select } from 'src/ui/select';
 import { Text } from 'src/ui/text';
@@ -15,97 +14,99 @@ import {
 } from 'src/constants/articleProps';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
-import { useRef, useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
+import clsx from 'clsx';
+import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
 
-type callbackFunction = {
-	callback: (configuration: ArticleStateType) => void;
+type ArticleParamsFormProps = {
+	setArticleConfig: (formState: ArticleStateType) => void;
 };
 
-export const ArticleParamsForm = (props: callbackFunction) => {
-	const [asideState, setasideState] = useState(false);
-	const [configuration, setConfiguration] =
+export const ArticleParamsForm = ({
+	setArticleConfig,
+}: ArticleParamsFormProps) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const [formState, setFormState] =
 		useState<ArticleStateType>(defaultArticleState);
-	const aside = useRef<HTMLElement | null>(null);
+	const rootRef = useRef<HTMLFormElement | null>(null);
+	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setArticleConfig(formState);
+	};
+	const handleReset = () => {
+		setFormState(defaultArticleState);
+		setArticleConfig(defaultArticleState);
+	};
+	const onChange = () => {
+		if (isOpen) {
+			setIsOpen((prev) => !prev);
+		}
+	};
+	useOutsideClickClose({ isOpen, rootRef, onChange });
 	return (
 		<>
-			<ArrowButton
-				isOpen={asideState}
-				onClick={() => {
-					asideState ? setasideState(false) : setasideState(true);
-					aside.current?.classList.toggle(styles.container_open);
-				}}
-			/>
+			<ArrowButton isOpen={isOpen} onClick={() => setIsOpen((prev) => !prev)} />
 			<aside
-				ref={aside}
-				className={styles.container}
-				onSubmit={(e) => e.preventDefault()}>
-				<form className={styles.form}>
+				className={clsx(styles.container, {
+					[styles.container_open]: isOpen,
+				})}>
+				<form
+					ref={rootRef}
+					className={styles.form}
+					onReset={handleReset}
+					onSubmit={handleSubmit}>
 					<Text as={'h2'} size={31} weight={800} uppercase dynamic={false}>
 						Задайте параметры
 					</Text>
 					<Select
 						options={fontFamilyOptions}
 						placeholder=''
-						selected={configuration.fontFamilyOption}
+						selected={formState.fontFamilyOption}
 						onChange={(font) =>
-							setConfiguration({ ...configuration, fontFamilyOption: font })
+							setFormState({ ...formState, fontFamilyOption: font })
 						}
-						onClose={() => console.log(2)}
 						title='Шрифт'
 					/>
 					<RadioGroup
 						title='Размер шрифта'
 						options={fontSizeOptions}
 						name='fontSize'
-						selected={configuration.fontSizeOption}
+						selected={formState.fontSizeOption}
 						onChange={(fontSize) =>
-							setConfiguration({ ...configuration, fontSizeOption: fontSize })
+							setFormState({ ...formState, fontSizeOption: fontSize })
 						}
 					/>
 					<Select
 						options={fontColors}
-						placeholder='Цвет шрифта'
-						selected={configuration.fontColor}
+						placeholder=''
+						selected={formState.fontColor}
 						onChange={(fontColor) =>
-							setConfiguration({ ...configuration, fontColor: fontColor })
+							setFormState({ ...formState, fontColor: fontColor })
 						}
 						title='Цвет шрифта'
 					/>
 					<Separator />
 					<Select
 						options={backgroundColors}
-						placeholder='Цвет фона'
-						selected={configuration.backgroundColor}
+						placeholder=''
+						selected={formState.backgroundColor}
 						onChange={(bgColor) =>
-							setConfiguration({ ...configuration, backgroundColor: bgColor })
+							setFormState({ ...formState, backgroundColor: bgColor })
 						}
 						title='Цвет фона'
 					/>
 					<Select
 						options={contentWidthArr}
-						placeholder='Ширина контента'
-						selected={configuration.contentWidth}
+						placeholder=''
+						selected={formState.contentWidth}
 						onChange={(contentW) =>
-							setConfiguration({ ...configuration, contentWidth: contentW })
+							setFormState({ ...formState, contentWidth: contentW })
 						}
 						title='Ширина контента'
 					/>
 					<div className={styles.bottomContainer}>
-						<Button
-							title='Сбросить'
-							htmlType='reset'
-							type='clear'
-							onClick={() => {
-								setConfiguration(defaultArticleState);
-								props.callback(defaultArticleState);
-							}}
-						/>
-						<Button
-							title='Применить'
-							htmlType='submit'
-							type='apply'
-							onClick={() => props.callback(configuration)}
-						/>
+						<Button title='Сбросить' htmlType='reset' type='clear' />
+						<Button title='Применить' htmlType='submit' type='apply' />
 					</div>
 				</form>
 			</aside>
